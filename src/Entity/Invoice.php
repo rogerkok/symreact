@@ -4,7 +4,11 @@ namespace App\Entity;
 
 use App\Repository\InvoiceRepository;
 use Doctrine\ORM\Mapping as ORM;
-
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+#[ApiResource()]
+#[ApiFilter(SearchFilter::class)]
 #[ORM\Entity(repositoryClass: InvoiceRepository::class)]
 class Invoice
 {
@@ -29,6 +33,9 @@ class Invoice
     #[ORM\Column(type: 'integer', nullable: true)]
     private $chrono;
 
+    public function getUtilisateur():User{
+        return $this->customer->getUtilisateur();
+    }
 
     public function getId(): ?int
     {

@@ -6,8 +6,15 @@ use App\Repository\CustomerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 
+ #[ApiResource()]
+ #[ApiFilter(SearchFilter::class)]
 #[ORM\Entity(repositoryClass: CustomerRepository::class)]
+
 class Customer
 {
     #[ORM\Id]
@@ -28,6 +35,9 @@ class Customer
     private $company;
 
     #[ORM\OneToMany(mappedBy: 'customer', targetEntity: Invoice::class)]
+    /**
+     * @ApiSubresource
+     */
     private $invoices;
 
     #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'customers')]
@@ -37,6 +47,17 @@ class Customer
     public function __construct()
     {
         $this->invoices = new ArrayCollection();
+    }
+
+    public function getTotalAmount():float{
+        return array_reduce($this->invoices->toArray(), function($total, $invoice){
+            return $total+$invoice->getAmount();
+        }, 0);
+    }
+    public function getUmpaidAmount():float{
+        return array_reduce($this->invoices->toArray(), function($total, $invoice){
+            return $total+($invoice->getStatus()==='PAID'|| $invoice->getStatus()==='CANCELED'? 0 :$invoice->getAmount());
+        }, 0);
     }
 
     public function getId(): ?int
